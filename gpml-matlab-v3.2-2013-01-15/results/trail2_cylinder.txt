@@ -1,0 +1,15 @@
+Data from robot gripper sensors											
+Nov-14											
+"Data generation: Physical testing and data logging"												
+"Hardware: human, Robotiq hand"												
+Grasp #	maxofpalm	palm	middlefinger
+1	1.2475	0.533125	0.369375
+2	1.2525	0.54875	0.40625
+3	1.24	0.534375	0.4525
+4	0.975	0.55375	0.435625
+5	1.2425	0.5275	0.46375
+6	1.1675	0.53875	0.43875
+7	1.21	0.53125	0.455625
+8	0.1825	0.56625	0.485
+9	0.01	0.459375	0.514375
+10	0.005	0.214375	0.33625

@@ -1,0 +1,460 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>mytemp</title><meta name="generator" content="MATLAB 8.0"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2013-08-06"><meta name="DC.source" content="mytemp.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput">1 <span class="keyword">function</span> [X, fX, i] = minimize(X, f, length, varargin)
+2 <span class="comment">% Minimize a differentiable multivariate function using conjugate gradients.</span>
+3 <span class="comment">%</span>
+4 <span class="comment">% Usage: [X, fX, i] = minimize(X, f, length, P1, P2, P3, ... )</span>
+5 <span class="comment">%</span>
+6 <span class="comment">% X       initial guess; may be of any type, including struct and cell array</span>
+7 <span class="comment">% f       the name or pointer to the function to be minimized. The function</span>
+8 <span class="comment">%         f must return two arguments, the value of the function, and it's</span>
+9 <span class="comment">%         partial derivatives wrt the elements of X. The partial derivative</span>
+10 <span class="comment">%         must have the same type as X.</span>
+11 <span class="comment">% length  length of the run; if it is positive, it gives the maximum number of</span>
+12 <span class="comment">%         line searches, if negative its absolute gives the maximum allowed</span>
+13 <span class="comment">%         number of function evaluations. Optionally, length can have a second</span>
+14 <span class="comment">%         component, which will indicate the reduction in function value to be</span>
+15 <span class="comment">%         expected in the first line-search (defaults to 1.0).</span>
+16 <span class="comment">% P1, P2, ... parameters are passed to the function f.</span>
+17 <span class="comment">%</span>
+18 <span class="comment">% X       the returned solution</span>
+19 <span class="comment">% fX      vector of function values indicating progress made</span>
+20 <span class="comment">% i       number of iterations (line searches or function evaluations,</span>
+21 <span class="comment">%         depending on the sign of "length") used at termination.</span>
+22 <span class="comment">%</span>
+23 <span class="comment">% The function returns when either its length is up, or if no further progress</span>
+24 <span class="comment">% can be made (ie, we are at a (local) minimum, or so close that due to</span>
+25 <span class="comment">% numerical problems, we cannot get any closer). NOTE: If the function</span>
+26 <span class="comment">% terminates within a few iterations, it could be an indication that the</span>
+27 <span class="comment">% function values and derivatives are not consistent (ie, there may be a bug in</span>
+28 <span class="comment">% the implementation of your "f" function).</span>
+29 <span class="comment">%</span>
+30 <span class="comment">% The Polack-Ribiere flavour of conjugate gradients is used to compute search</span>
+31 <span class="comment">% directions, and a line search using quadratic and cubic polynomial</span>
+32 <span class="comment">% approximations and the Wolfe-Powell stopping criteria is used together with</span>
+33 <span class="comment">% the slope ratio method for guessing initial step sizes. Additionally a bunch</span>
+34 <span class="comment">% of checks are made to make sure that exploration is taking place and that</span>
+35 <span class="comment">% extrapolation will not be unboundedly large.</span>
+36 <span class="comment">%</span>
+37 <span class="comment">% See also: checkgrad</span>
+38 <span class="comment">%</span>
+39 <span class="comment">% Copyright (C) 2001 - 2010 by Carl Edward Rasmussen, 2010-01-03</span>
+40 INT = 0.1;    <span class="comment">% don't reevaluate within 0.1 of the limit of the current bracket</span>
+41 EXT = 3.0;                  <span class="comment">% extrapolate maximum 3 times the current step-size</span>
+42 MAX = 20;                         <span class="comment">% max 20 function evaluations per line search</span>
+43 RATIO = 10;                                       <span class="comment">% maximum allowed slope ratio</span>
+44 SIG = 0.1; RHO = SIG/2; <span class="comment">% SIG and RHO are the constants controlling the Wolfe-</span>
+45 <span class="comment">% Powell conditions. SIG is the maximum allowed absolute ratio between</span>
+46 <span class="comment">% previous and new slopes (derivatives in the search direction), thus setting</span>
+47 <span class="comment">% SIG to low (positive) values forces higher precision in the line-searches.</span>
+48 <span class="comment">% RHO is the minimum allowed fraction of the expected (from the slope at the</span>
+49 <span class="comment">% initial point in the linesearch). Constants must satisfy 0 &lt; RHO &lt; SIG &lt; 1.</span>
+50 <span class="comment">% Tuning of SIG (depending on the nature of the function to be optimized) may</span>
+51 <span class="comment">% speed up the minimization; it is probably not worth playing much with RHO.</span>
+52 <span class="comment">% The code falls naturally into 3 parts, after the initial line search is</span>
+53 <span class="comment">% started in the direction of steepest descent. 1) we first enter a while loop</span>
+54 <span class="comment">% which uses point 1 (p1) and (p2) to compute an extrapolation (p3), until we</span>
+55 <span class="comment">% have extrapolated far enough (Wolfe-Powell conditions). 2) if necessary, we</span>
+56 <span class="comment">% enter the second loop which takes p2, p3 and p4 chooses the subinterval</span>
+57 <span class="comment">% containing a (local) minimum, and interpolates it, unil an acceptable point</span>
+58 <span class="comment">% is found (Wolfe-Powell conditions). Note, that points are always maintained</span>
+59 <span class="comment">% in order p0 &lt;= p1 &lt;= p2 &lt; p3 &lt; p4. 3) compute a new search direction using</span>
+60 <span class="comment">% conjugate gradients (Polack-Ribiere flavour), or revert to steepest if there</span>
+61 <span class="comment">% was a problem in the previous line-search. Return the best value so far, if</span>
+62 <span class="comment">% two consecutive line-searches fail, or whenever we run out of function</span>
+63 <span class="comment">% evaluations or line-searches. During extrapolation, the "f" function may fail</span>
+64 <span class="comment">% either with an error or returning Nan or Inf, and minimize should handle this</span>
+65 <span class="comment">% gracefully.</span>
+66 <span class="keyword">if</span> max(size(length)) == 2, red=length(2); length=length(1); <span class="keyword">else</span> red=1; <span class="keyword">end</span>
+67 <span class="keyword">if</span> length&gt;0, S=<span class="string">'Linesearch'</span>; <span class="keyword">else</span> S=<span class="string">'Function evaluation'</span>; <span class="keyword">end</span>
+68 i = 0;                                            <span class="comment">% zero the run length counter</span>
+69 ls_failed = 0;                             <span class="comment">% no previous line search has failed</span>
+70 [f0 df0] = feval(f, X, varargin{:});          <span class="comment">% get function value and gradient</span>
+71 Z = X; X = unwrap(X); df0 = unwrap(df0);
+72 <span class="comment">%fprintf('%s %6i;  Value %4.6e\r', S, i, f0);</span>
+73 <span class="keyword">if</span> exist(<span class="string">'fflush'</span>,<span class="string">'builtin'</span>) fflush(stdout); <span class="keyword">end</span>
+74 fX = f0;
+75 i = i + (length&lt;0);                                            <span class="comment">% count epochs?!</span>
+76 s = -df0; d0 = -s'*s;           <span class="comment">% initial search direction (steepest) and slope</span>
+77 x3 = red/(1-d0);                                  <span class="comment">% initial step is red/(|s|+1)</span>
+78 <span class="keyword">while</span> i &lt; abs(length)                                      <span class="comment">% while not finished</span>
+79   i = i + (length&gt;0);                                      <span class="comment">% count iterations?!</span>
+80   X0 = X; F0 = f0; dF0 = df0;                   <span class="comment">% make a copy of current values</span>
+81   <span class="keyword">if</span> length&gt;0, M = MAX; <span class="keyword">else</span> M = min(MAX, -length-i); <span class="keyword">end</span>
+82   <span class="keyword">while</span> 1                             <span class="comment">% keep extrapolating as long as necessary</span>
+83     x2 = 0; f2 = f0; d2 = d0; f3 = f0; df3 = df0;
+84     success = 0;
+85     <span class="keyword">while</span> ~success &amp;&amp; M &gt; 0
+86       <span class="keyword">try</span>
+87         M = M - 1; i = i + (length&lt;0);                         <span class="comment">% count epochs?!</span>
+88
+89         [f3 df3] = feval(f, rewrap(Z,X+x3*s), varargin{:});
+90         df3 = unwrap(df3);
+91         <span class="keyword">if</span> isnan(f3) || isinf(f3) || any(isnan(df3)+isinf(df3)), error(<span class="string">''</span>), <span class="keyword">end</span>
+92         success = 1;
+93       <span class="keyword">catch</span>                                <span class="comment">% catch any error which occured in f</span>
+94         x3 = (x2+x3)/2;                                  <span class="comment">% bisect and try again</span>
+95       <span class="keyword">end</span>
+96     <span class="keyword">end</span>
+97     <span class="keyword">if</span> f3 &lt; F0, X0 = X+x3*s; F0 = f3; dF0 = df3; <span class="keyword">end</span>         <span class="comment">% keep best values</span>
+98     d3 = df3'*s;                                                    <span class="comment">% new slope</span>
+99     <span class="keyword">if</span> d3 &gt; SIG*d0 || f3 &gt; f0+x3*RHO*d0 || M == 0  <span class="comment">% are we done extrapolating?</span>
+100       <span class="keyword">break</span>
+101     <span class="keyword">end</span>
+102     x1 = x2; f1 = f2; d1 = d2;                        <span class="comment">% move point 2 to point 1</span>
+103     x2 = x3; f2 = f3; d2 = d3;                        <span class="comment">% move point 3 to point 2</span>
+104     A = 6*(f1-f2)+3*(d2+d1)*(x2-x1);                 <span class="comment">% make cubic extrapolation</span>
+105     B = 3*(f2-f1)-(2*d1+d2)*(x2-x1);
+106     x3 = x1-d1*(x2-x1)^2/(B+sqrt(B*B-A*d1*(x2-x1))); <span class="comment">% num. error possible, ok!</span>
+107     <span class="keyword">if</span> ~isreal(x3) || isnan(x3) || isinf(x3) || x3 &lt; 0 <span class="comment">% num prob | wrong sign?</span>
+108       x3 = x2*EXT;                                 <span class="comment">% extrapolate maximum amount</span>
+109     <span class="keyword">elseif</span> x3 &gt; x2*EXT                  <span class="comment">% new point beyond extrapolation limit?</span>
+110       x3 = x2*EXT;                                 <span class="comment">% extrapolate maximum amount</span>
+111     <span class="keyword">elseif</span> x3 &lt; x2+INT*(x2-x1)         <span class="comment">% new point too close to previous point?</span>
+112       x3 = x2+INT*(x2-x1);
+113     <span class="keyword">end</span>
+114   <span class="keyword">end</span>                                                       <span class="comment">% end extrapolation</span>
+115   <span class="keyword">while</span> (abs(d3) &gt; -SIG*d0 || f3 &gt; f0+x3*RHO*d0) &amp;&amp; M &gt; 0  <span class="comment">% keep interpolating</span>
+116     <span class="keyword">if</span> d3 &gt; 0 || f3 &gt; f0+x3*RHO*d0                         <span class="comment">% choose subinterval</span>
+117       x4 = x3; f4 = f3; d4 = d3;                      <span class="comment">% move point 3 to point 4</span>
+118     <span class="keyword">else</span>
+119       x2 = x3; f2 = f3; d2 = d3;                      <span class="comment">% move point 3 to point 2</span>
+120     <span class="keyword">end</span>
+121     <span class="keyword">if</span> f4 &gt; f0
+122       x3 = x2-(0.5*d2*(x4-x2)^2)/(f4-f2-d2*(x4-x2));  <span class="comment">% quadratic interpolation</span>
+123     <span class="keyword">else</span>
+124       A = 6*(f2-f4)/(x4-x2)+3*(d4+d2);                    <span class="comment">% cubic interpolation</span>
+125       B = 3*(f4-f2)-(2*d2+d4)*(x4-x2);
+126       x3 = x2+(sqrt(B*B-A*d2*(x4-x2)^2)-B)/A;        <span class="comment">% num. error possible, ok!</span>
+127     <span class="keyword">end</span>
+128     <span class="keyword">if</span> isnan(x3) || isinf(x3)
+129       x3 = (x2+x4)/2;               <span class="comment">% if we had a numerical problem then bisect</span>
+130     <span class="keyword">end</span>
+131     x3 = max(min(x3, x4-INT*(x4-x2)),x2+INT*(x4-x2));  <span class="comment">% don't accept too close</span>
+132     [f3 df3] = feval(f, rewrap(Z,X+x3*s), varargin{:});
+133     df3 = unwrap(df3);
+134     <span class="keyword">if</span> f3 &lt; F0, X0 = X+x3*s; F0 = f3; dF0 = df3; <span class="keyword">end</span>         <span class="comment">% keep best values</span>
+135     M = M - 1; i = i + (length&lt;0);                             <span class="comment">% count epochs?!</span>
+136     d3 = df3'*s;                                                    <span class="comment">% new slope</span>
+137   <span class="keyword">end</span>                                                       <span class="comment">% end interpolation</span>
+138   <span class="keyword">if</span> abs(d3) &lt; -SIG*d0 &amp;&amp; f3 &lt; f0+x3*RHO*d0          <span class="comment">% if line search succeeded</span>
+139     X = X+x3*s; f0 = f3; fX = [fX' f0]';                     <span class="comment">% update variables</span>
+140     <span class="comment">%fprintf('%s %6i;  Value %4.6e\r', S, i, f0);</span>
+141     <span class="keyword">if</span> exist(<span class="string">'fflush'</span>,<span class="string">'builtin'</span>) fflush(stdout); <span class="keyword">end</span>
+142     s = (df3'*df3-df0'*df3)/(df0'*df0)*s - df3;   <span class="comment">% Polack-Ribiere CG direction</span>
+143     df0 = df3;                                               <span class="comment">% swap derivatives</span>
+144     d3 = d0; d0 = df0'*s;
+145     <span class="keyword">if</span> d0 &gt; 0                                      <span class="comment">% new slope must be negative</span>
+146       s = -df0; d0 = -s'*s;                  <span class="comment">% otherwise use steepest direction</span>
+147     <span class="keyword">end</span>
+148     x3 = x3 * min(RATIO, d3/(d0-realmin));          <span class="comment">% slope ratio but max RATIO</span>
+149     ls_failed = 0;                              <span class="comment">% this line search did not fail</span>
+150   <span class="keyword">else</span>
+151     X = X0; f0 = F0; df0 = dF0;                     <span class="comment">% restore best point so far</span>
+152     <span class="keyword">if</span> ls_failed || i &gt; abs(length)         <span class="comment">% line search failed twice in a row</span>
+153       <span class="keyword">break</span>;                             <span class="comment">% or we ran out of time, so we give up</span>
+154     <span class="keyword">end</span>
+155     s = -df0; d0 = -s'*s;                                        <span class="comment">% try steepest</span>
+156     x3 = 1/(1-d0);
+157     ls_failed = 1;                                    <span class="comment">% this line search failed</span>
+158   <span class="keyword">end</span>
+159 <span class="keyword">end</span>
+160 X = rewrap(Z,X);
+161 fprintf(<span class="string">'\n'</span>); <span class="keyword">if</span> exist(<span class="string">'fflush'</span>,<span class="string">'builtin'</span>) fflush(stdout); <span class="keyword">end</span>
+162 <span class="keyword">function</span> v = unwrap(s)
+163 <span class="comment">% Extract the numerical values from "s" into the column vector "v". The</span>
+164 <span class="comment">% variable "s" can be of any type, including struct and cell array.</span>
+165 <span class="comment">% Non-numerical elements are ignored. See also the reverse rewrap.m.</span>
+166 v = [];
+167 <span class="keyword">if</span> isnumeric(s)
+168   v = s(:);                        <span class="comment">% numeric values are recast to column vector</span>
+169 <span class="keyword">elseif</span> isstruct(s)
+170   v = unwrap(struct2cell(orderfields(s))); <span class="comment">% alphabetize, conv to cell, recurse</span>
+171 <span class="keyword">elseif</span> iscell(s)
+172   <span class="keyword">for</span> i = 1:numel(s)             <span class="comment">% cell array elements are handled sequentially</span>
+173     v = [v; unwrap(s{i})];
+174   <span class="keyword">end</span>
+175 <span class="keyword">end</span>                                                   <span class="comment">% other types are ignored</span>
+176 <span class="keyword">function</span> [s v] = rewrap(s, v)
+177 <span class="comment">% Map the numerical elements in the vector "v" onto the variables "s" which can</span>
+178 <span class="comment">% be of any type. The number of numerical elements must match; on exit "v"</span>
+179 <span class="comment">% should be empty. Non-numerical entries are just copied. See also unwrap.m.</span>
+180 <span class="keyword">if</span> isnumeric(s)
+181   <span class="keyword">if</span> numel(v) &lt; numel(s)
+182     error(<span class="string">'The vector for conversion contains too few elements'</span>)
+183   <span class="keyword">end</span>
+184   s = reshape(v(1:numel(s)), size(s));            <span class="comment">% numeric values are reshaped</span>
+185   v = v(numel(s)+1:end);                        <span class="comment">% remaining arguments passed on</span>
+186 <span class="keyword">elseif</span> isstruct(s)
+187   [s p] = orderfields(s); p(p) = 1:numel(p);      <span class="comment">% alphabetize, store ordering</span>
+188   [t v] = rewrap(struct2cell(s), v);                 <span class="comment">% convert to cell, recurse</span>
+189   s = orderfields(cell2struct(t,fieldnames(s),1),p);  <span class="comment">% conv to struct, reorder</span>
+190 <span class="keyword">elseif</span> iscell(s)
+191   <span class="keyword">for</span> i = 1:numel(s)             <span class="comment">% cell array elements are handled sequentially</span>
+192     [s{i} v] = rewrap(s{i}, v);
+193   <span class="keyword">end</span>
+194 <span class="keyword">end</span>                                             <span class="comment">% other types are not processed</span>
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2012b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+1 function [X, fX, i] = minimize(X, f, length, varargin)
+2 % Minimize a differentiable multivariate function using conjugate gradients.
+3 %
+4 % Usage: [X, fX, i] = minimize(X, f, length, P1, P2, P3, ... )
+5 % 
+6 % X       initial guess; may be of any type, including struct and cell array
+7 % f       the name or pointer to the function to be minimized. The function
+8 %         f must return two arguments, the value of the function, and it's
+9 %         partial derivatives wrt the elements of X. The partial derivative  
+10 %         must have the same type as X.
+11 % length  length of the run; if it is positive, it gives the maximum number of
+12 %         line searches, if negative its absolute gives the maximum allowed
+13 %         number of function evaluations. Optionally, length can have a second
+14 %         component, which will indicate the reduction in function value to be
+15 %         expected in the first line-search (defaults to 1.0).
+16 % P1, P2, ... parameters are passed to the function f.
+17 %
+18 % X       the returned solution
+19 % fX      vector of function values indicating progress made
+20 % i       number of iterations (line searches or function evaluations, 
+21 %         depending on the sign of "length") used at termination.
+22 %
+23 % The function returns when either its length is up, or if no further progress
+24 % can be made (ie, we are at a (local) minimum, or so close that due to
+25 % numerical problems, we cannot get any closer). NOTE: If the function
+26 % terminates within a few iterations, it could be an indication that the
+27 % function values and derivatives are not consistent (ie, there may be a bug in
+28 % the implementation of your "f" function).
+29 %
+30 % The Polack-Ribiere flavour of conjugate gradients is used to compute search
+31 % directions, and a line search using quadratic and cubic polynomial
+32 % approximations and the Wolfe-Powell stopping criteria is used together with
+33 % the slope ratio method for guessing initial step sizes. Additionally a bunch
+34 % of checks are made to make sure that exploration is taking place and that
+35 % extrapolation will not be unboundedly large.
+36 %
+37 % See also: checkgrad 
+38 %
+39 % Copyright (C) 2001 - 2010 by Carl Edward Rasmussen, 2010-01-03
+40 INT = 0.1;    % don't reevaluate within 0.1 of the limit of the current bracket
+41 EXT = 3.0;                  % extrapolate maximum 3 times the current step-size
+42 MAX = 20;                         % max 20 function evaluations per line search
+43 RATIO = 10;                                       % maximum allowed slope ratio
+44 SIG = 0.1; RHO = SIG/2; % SIG and RHO are the constants controlling the Wolfe-
+45 % Powell conditions. SIG is the maximum allowed absolute ratio between
+46 % previous and new slopes (derivatives in the search direction), thus setting
+47 % SIG to low (positive) values forces higher precision in the line-searches.
+48 % RHO is the minimum allowed fraction of the expected (from the slope at the
+49 % initial point in the linesearch). Constants must satisfy 0 < RHO < SIG < 1.
+50 % Tuning of SIG (depending on the nature of the function to be optimized) may
+51 % speed up the minimization; it is probably not worth playing much with RHO.
+52 % The code falls naturally into 3 parts, after the initial line search is
+53 % started in the direction of steepest descent. 1) we first enter a while loop
+54 % which uses point 1 (p1) and (p2) to compute an extrapolation (p3), until we
+55 % have extrapolated far enough (Wolfe-Powell conditions). 2) if necessary, we
+56 % enter the second loop which takes p2, p3 and p4 chooses the subinterval
+57 % containing a (local) minimum, and interpolates it, unil an acceptable point
+58 % is found (Wolfe-Powell conditions). Note, that points are always maintained
+59 % in order p0 <= p1 <= p2 < p3 < p4. 3) compute a new search direction using
+60 % conjugate gradients (Polack-Ribiere flavour), or revert to steepest if there
+61 % was a problem in the previous line-search. Return the best value so far, if
+62 % two consecutive line-searches fail, or whenever we run out of function
+63 % evaluations or line-searches. During extrapolation, the "f" function may fail
+64 % either with an error or returning Nan or Inf, and minimize should handle this
+65 % gracefully.
+66 if max(size(length)) == 2, red=length(2); length=length(1); else red=1; end
+67 if length>0, S='Linesearch'; else S='Function evaluation'; end 
+68 i = 0;                                            % zero the run length counter
+69 ls_failed = 0;                             % no previous line search has failed
+70 [f0 df0] = feval(f, X, varargin{:});          % get function value and gradient
+71 Z = X; X = unwrap(X); df0 = unwrap(df0);
+72 %fprintf('%s %6i;  Value %4.6e\r', S, i, f0);
+73 if exist('fflush','builtin') fflush(stdout); end
+74 fX = f0;
+75 i = i + (length<0);                                            % count epochs?!
+76 s = -df0; d0 = -s'*s;           % initial search direction (steepest) and slope
+77 x3 = red/(1-d0);                                  % initial step is red/(|s|+1)
+78 while i < abs(length)                                      % while not finished
+79   i = i + (length>0);                                      % count iterations?!
+80   X0 = X; F0 = f0; dF0 = df0;                   % make a copy of current values
+81   if length>0, M = MAX; else M = min(MAX, -length-i); end
+82   while 1                             % keep extrapolating as long as necessary
+83     x2 = 0; f2 = f0; d2 = d0; f3 = f0; df3 = df0;
+84     success = 0;
+85     while ~success && M > 0
+86       try
+87         M = M - 1; i = i + (length<0);                         % count epochs?!
+88         
+89         [f3 df3] = feval(f, rewrap(Z,X+x3*s), varargin{:});
+90         df3 = unwrap(df3);
+91         if isnan(f3) || isinf(f3) || any(isnan(df3)+isinf(df3)), error(''), end
+92         success = 1;
+93       catch                                % catch any error which occured in f
+94         x3 = (x2+x3)/2;                                  % bisect and try again
+95       end
+96     end
+97     if f3 < F0, X0 = X+x3*s; F0 = f3; dF0 = df3; end         % keep best values
+98     d3 = df3'*s;                                                    % new slope
+99     if d3 > SIG*d0 || f3 > f0+x3*RHO*d0 || M == 0  % are we done extrapolating?
+100       break
+101     end
+102     x1 = x2; f1 = f2; d1 = d2;                        % move point 2 to point 1
+103     x2 = x3; f2 = f3; d2 = d3;                        % move point 3 to point 2
+104     A = 6*(f1-f2)+3*(d2+d1)*(x2-x1);                 % make cubic extrapolation
+105     B = 3*(f2-f1)-(2*d1+d2)*(x2-x1);
+106     x3 = x1-d1*(x2-x1)^2/(B+sqrt(B*B-A*d1*(x2-x1))); % num. error possible, ok!
+107     if ~isreal(x3) || isnan(x3) || isinf(x3) || x3 < 0 % num prob | wrong sign?
+108       x3 = x2*EXT;                                 % extrapolate maximum amount
+109     elseif x3 > x2*EXT                  % new point beyond extrapolation limit?
+110       x3 = x2*EXT;                                 % extrapolate maximum amount
+111     elseif x3 < x2+INT*(x2-x1)         % new point too close to previous point?
+112       x3 = x2+INT*(x2-x1);
+113     end
+114   end                                                       % end extrapolation
+115   while (abs(d3) > -SIG*d0 || f3 > f0+x3*RHO*d0) && M > 0  % keep interpolating
+116     if d3 > 0 || f3 > f0+x3*RHO*d0                         % choose subinterval
+117       x4 = x3; f4 = f3; d4 = d3;                      % move point 3 to point 4
+118     else
+119       x2 = x3; f2 = f3; d2 = d3;                      % move point 3 to point 2
+120     end
+121     if f4 > f0           
+122       x3 = x2-(0.5*d2*(x4-x2)^2)/(f4-f2-d2*(x4-x2));  % quadratic interpolation
+123     else
+124       A = 6*(f2-f4)/(x4-x2)+3*(d4+d2);                    % cubic interpolation
+125       B = 3*(f4-f2)-(2*d2+d4)*(x4-x2);
+126       x3 = x2+(sqrt(B*B-A*d2*(x4-x2)^2)-B)/A;        % num. error possible, ok!
+127     end
+128     if isnan(x3) || isinf(x3)
+129       x3 = (x2+x4)/2;               % if we had a numerical problem then bisect
+130     end
+131     x3 = max(min(x3, x4-INT*(x4-x2)),x2+INT*(x4-x2));  % don't accept too close
+132     [f3 df3] = feval(f, rewrap(Z,X+x3*s), varargin{:});
+133     df3 = unwrap(df3);
+134     if f3 < F0, X0 = X+x3*s; F0 = f3; dF0 = df3; end         % keep best values
+135     M = M - 1; i = i + (length<0);                             % count epochs?!
+136     d3 = df3'*s;                                                    % new slope
+137   end                                                       % end interpolation
+138   if abs(d3) < -SIG*d0 && f3 < f0+x3*RHO*d0          % if line search succeeded
+139     X = X+x3*s; f0 = f3; fX = [fX' f0]';                     % update variables
+140     %fprintf('%s %6i;  Value %4.6e\r', S, i, f0);
+141     if exist('fflush','builtin') fflush(stdout); end
+142     s = (df3'*df3-df0'*df3)/(df0'*df0)*s - df3;   % Polack-Ribiere CG direction
+143     df0 = df3;                                               % swap derivatives
+144     d3 = d0; d0 = df0'*s;
+145     if d0 > 0                                      % new slope must be negative
+146       s = -df0; d0 = -s'*s;                  % otherwise use steepest direction
+147     end
+148     x3 = x3 * min(RATIO, d3/(d0-realmin));          % slope ratio but max RATIO
+149     ls_failed = 0;                              % this line search did not fail
+150   else
+151     X = X0; f0 = F0; df0 = dF0;                     % restore best point so far
+152     if ls_failed || i > abs(length)         % line search failed twice in a row
+153       break;                             % or we ran out of time, so we give up
+154     end
+155     s = -df0; d0 = -s'*s;                                        % try steepest
+156     x3 = 1/(1-d0);                     
+157     ls_failed = 1;                                    % this line search failed
+158   end
+159 end
+160 X = rewrap(Z,X); 
+161 fprintf('\n'); if exist('fflush','builtin') fflush(stdout); end
+162 function v = unwrap(s)
+163 % Extract the numerical values from "s" into the column vector "v". The
+164 % variable "s" can be of any type, including struct and cell array.
+165 % Non-numerical elements are ignored. See also the reverse rewrap.m. 
+166 v = [];   
+167 if isnumeric(s)
+168   v = s(:);                        % numeric values are recast to column vector
+169 elseif isstruct(s)
+170   v = unwrap(struct2cell(orderfields(s))); % alphabetize, conv to cell, recurse
+171 elseif iscell(s)
+172   for i = 1:numel(s)             % cell array elements are handled sequentially
+173     v = [v; unwrap(s{i})];
+174   end
+175 end                                                   % other types are ignored
+176 function [s v] = rewrap(s, v)
+177 % Map the numerical elements in the vector "v" onto the variables "s" which can
+178 % be of any type. The number of numerical elements must match; on exit "v"
+179 % should be empty. Non-numerical entries are just copied. See also unwrap.m.
+180 if isnumeric(s)
+181   if numel(v) < numel(s)
+182     error('The vector for conversion contains too few elements')
+183   end
+184   s = reshape(v(1:numel(s)), size(s));            % numeric values are reshaped
+185   v = v(numel(s)+1:end);                        % remaining arguments passed on
+186 elseif isstruct(s) 
+187   [s p] = orderfields(s); p(p) = 1:numel(p);      % alphabetize, store ordering
+188   [t v] = rewrap(struct2cell(s), v);                 % convert to cell, recurse
+189   s = orderfields(cell2struct(t,fieldnames(s),1),p);  % conv to struct, reorder
+190 elseif iscell(s)
+191   for i = 1:numel(s)             % cell array elements are handled sequentially 
+192     [s{i} v] = rewrap(s{i}, v);
+193   end
+194 end                                             % other types are not processed
+
+##### SOURCE END #####
+--></body></html>

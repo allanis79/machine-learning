@@ -1,0 +1,5 @@
+node = rosmatlab.node('NODE',[],[],'rosIP','127.0.0.1');
+subscriber = rosmatlab.subscriber('/takktile_throttled/raw','takktile_ros/Raw',1,node);
+subscriber.setOnNewMessageListeners({@takktile_callback});
+global raw_data
+global run_gp
