@@ -1,0 +1,18 @@
+1) Year = year(Date);
+2) use create code to generate customised code.
+3) drag and drop of the data file.
+4) use NaN for unreadable columns.
+5) use customised import data tool.
+5) idx = Year ~= 2006 => to delete specific years.
+6) predint = use to predict model accruacy. 
+7) %% = make sections
+8) % = comment lines
+
+Machine learing using MatLab:
+
+1) imset = imageSet('nae of folder','recrusive')
+2)montage
+BAG OF WORDS:
+1) image classification uisng bag of words
+2)bag0fFreatures()
+3)predict
